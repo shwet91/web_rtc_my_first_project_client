@@ -155,10 +155,10 @@ function page() {
         </button>
         <div className="flex ">
           <div className="border-green-500 border-4 h-[50vh] mr-3">
-            <video ref={localVid} autoPlay playsInline></video>
+            <video ref={localVid} autoPlay playsInline muted></video>
           </div>
           <div className="border-red-500 border-4 h-[50vh]">
-            <video ref={remoteVid} autoPlay playsInline muted></video>
+            <video ref={remoteVid} autoPlay playsInline ></video>
           </div>
         </div>
       </div>
