@@ -58,9 +58,21 @@ function page() {
   }, []);
 
   const getUserMedia = useCallback(async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-    });
+    const mediaStreamOptions = {
+      video: {
+        width: { ideal: 1280 }, // HD quality
+        height: { ideal: 720 },
+        frameRate: { ideal: 30, max: 30 },
+        aspectRatio: 16 / 9,
+      },
+      audio: {
+        echoCancellation: true, // Reduce echo
+        noiseSuppression: true, // Reduce background noise
+        autoGainControl: true, // Adjust mic volume automatically
+      },
+    };
+
+    const stream = await navigator.mediaDevices.getUserMedia(mediaStreamOptions);
     if (localVid.current) localVid.current.srcObject = stream;
     setStream(stream);
   }, []);
@@ -143,7 +155,7 @@ function page() {
         </button>
         <div className="flex ">
           <div className="border-green-500 border-4 h-[50vh] mr-3">
-            <video ref={localVid} autoPlay playsInline muted></video>
+            <video ref={localVid} autoPlay playsInline></video>
           </div>
           <div className="border-red-500 border-4 h-[50vh]">
             <video ref={remoteVid} autoPlay playsInline muted></video>
