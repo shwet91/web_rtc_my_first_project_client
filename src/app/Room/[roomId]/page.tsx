@@ -15,11 +15,15 @@ function page() {
     remoteStream,
     createNegotiationAnswer,
   } = usePeer();
-  const [remoteName, setRemoteName] = useState<string>("");
+  const [remoteName, setRemoteName] = useState<string | null>(null);
   const [stream, setStream] = useState<MediaStream>();
   const localVid = useRef<HTMLVideoElement>(null);
   const remoteVid = useRef<HTMLVideoElement>(null);
   const [isRemoteBtnClicked, setIsRemoteBtnCllicked] = useState(false);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [presBtn, setPresBtn] = useState(false);
+  const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
   const newUserJoin = async (data: any) => {
     if (!socket) return;
@@ -55,7 +59,21 @@ function page() {
 
     console.log("answer received :", answer);
     await setRemoteAns(answer);
+    setIsAnswered(true);
+    // btnHandler();
+    // await delay(5000);
+    // sendStream(stream);
+    // btnHandler();
   }, []);
+
+  useEffect(() => {
+    if (!isAnswered) return;
+    if (!remoteName) return;
+
+    console.log("sending stream after answer", remoteName, isAnswered);
+
+    btnHandler();
+  }, [isAnswered, remoteName]);
 
   const handleNegotiationCallAccepted = useCallback(async (data: any) => {
     const { answer } = data;
@@ -64,6 +82,7 @@ function page() {
     console.log("negotiation-answer received :", answer);
     await setRemoteAns(answer);
     // sdd logic to click the button here
+    socket?.emit("negotiation-call-accepted", { remoteName });
   }, []);
 
   const getUserMedia = useCallback(async () => {
@@ -93,11 +112,29 @@ function page() {
     setIsRemoteBtnCllicked(false);
     sendStream(stream);
     socket?.emit("start-btn-clicked", { remoteName });
+    // socket?.emit("stream-started", { remoteName });
   };
 
+  const streamStart = async () => {
+    // setPresBtn(true);
+    await delay(10000);
+    console.log("Stream start event triggered");
+    sendStream(stream);
+    // btnHandler()
+    // console.log("stream sent");
+  };
+
+  useEffect(() => {
+    if (presBtn) {
+      console.log("sending stream after remote btn click");
+      btnHandler();
+    }
+  }, [presBtn]);
+
   const negotiationNeeded = async () => {
-    console.log("value of :", remoteName);
+    console.log("Negotiation needed event triggered");
     const offer = await createOffer();
+    console.log("Negotiation offer send :", offer);
     socket?.emit("call-user-negotiation", { name: remoteName, offer });
   };
 
@@ -129,13 +166,17 @@ function page() {
     socket.on("call-accepted", handleCallAccepted);
     socket.on("negotiation-call-accepted", handleNegotiationCallAccepted);
     socket.on("call-user-negotiation", handleNegotiationIncommingCall);
-    socket.on("start-btn-clicked", () => setIsRemoteBtnCllicked(true));
+    // socket.on("start-btn-clicked", () => setIsRemoteBtnCllicked(true));
+    socket.on("start-btn-clicked", () => streamStart());
+    // socket.on("stream-started", () => sendStream(stream));
 
     return () => {
       socket.off("joined-room", newUserJoin);
       socket.off("call-accepted", handleCallAccepted);
+      socket.off("negotiation-call-accepted", handleNegotiationCallAccepted);
+      // socket.off("stream-started", () => sendStream(stream));
       socket.off("call-user-negotiation", handleNegotiationIncommingCall);
-      socket.off("start-btn-clicked", () => setIsRemoteBtnCllicked(true));
+      socket.off("start-btn-clicked", () => streamStart());
     };
   }, []);
 
