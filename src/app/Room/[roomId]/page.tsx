@@ -171,9 +171,9 @@ function page() {
       </header>
 
       {/* Main Video Area */}
-      <main className="flex-1 flex items-center justify-center p-4 gap-4">
+      <main className="flex-1 flex flex-col md:flex-row items-center justify-center p-4 gap-4 overflow-hidden">
         {/* Local Video */}
-        <div className="relative flex-1 h-full bg-slate-800 rounded-2xl overflow-hidden shadow-2xl border border-slate-700">
+        <div className="relative flex-1 w-full md:w-auto h-full min-h-[200px] bg-slate-800 rounded-2xl overflow-hidden shadow-2xl border border-slate-700">
           <video
             ref={localVid}
             autoPlay
@@ -187,7 +187,7 @@ function page() {
         </div>
 
         {/* Remote Video */}
-        <div className="relative flex-1 h-full bg-slate-800 rounded-2xl overflow-hidden shadow-2xl border border-slate-700">
+        <div className="relative flex-1 w-full md:w-auto h-full min-h-[200px] bg-slate-800 rounded-2xl overflow-hidden shadow-2xl border border-slate-700">
           <video
             ref={remoteVid}
             autoPlay
