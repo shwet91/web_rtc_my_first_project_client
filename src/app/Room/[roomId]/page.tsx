@@ -20,6 +20,7 @@ function page() {
   const localVid = useRef<HTMLVideoElement>(null);
   const remoteVid = useRef<HTMLVideoElement>(null);
   const [isRemoteBtnClicked, setIsRemoteBtnCllicked] = useState(false);
+  const [isBtnClicked, setIsBtnClicked] = useState(false);
 
   const newUserJoin = async (data: any) => {
     if (!socket) return;
@@ -72,12 +73,16 @@ function page() {
       },
     };
 
-    const stream = await navigator.mediaDevices.getUserMedia(mediaStreamOptions);
+    const stream = await navigator.mediaDevices.getUserMedia(
+      mediaStreamOptions
+    );
     if (localVid.current) localVid.current.srcObject = stream;
     setStream(stream);
   }, []);
 
   const btnHandler = () => {
+    if (isBtnClicked) return;
+    setIsBtnClicked(true);
     console.log("clicked btn :", remoteName);
     setIsRemoteBtnCllicked(false);
     sendStream(stream);
@@ -134,34 +139,185 @@ function page() {
     remoteVid.current.srcObject = remoteStream;
   }, [remoteStream]);
   return (
-    <div className="w-screen h-screen bg-yellow-800 flex items-center justify-center">
-      <div className="border-black border-2 p-5">
-        <h1 className="text-4xl">Welcome to video Chat</h1>
-        <h1 className="text-black">connected to {remoteName}</h1>
-        {isRemoteBtnClicked && (
-          <h1 className="text-red-600">
-            other user has clicked the start button now you have to click the
-            start btn to start the call
-          </h1>
-        )}
-        <button
-          onClick={btnHandler}
-          className="bg-gray-500 rounded-2xl p-3 m-3"
-        >
-          Start call
-        </button>
-        <button onClick={() => console.log(remoteName)}>
-          check remote name
-        </button>
-        <div className="flex ">
-          <div className="border-green-500 border-4 h-[50vh] mr-3">
-            <video ref={localVid} autoPlay playsInline muted></video>
+    <div className="w-screen h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 py-4 bg-slate-800/50 backdrop-blur-sm border-b border-slate-700">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+              />
+            </svg>
           </div>
-          <div className="border-red-500 border-4 h-[50vh]">
-            <video ref={remoteVid} autoPlay playsInline ></video>
+          <h1 className="text-xl font-semibold text-white">Video Chat</h1>
+        </div>
+        {remoteName && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-green-500/20 rounded-full border border-green-500/30">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            <span className="text-green-400 text-sm font-medium">
+              Connected to {remoteName}
+            </span>
+          </div>
+        )}
+      </header>
+
+      {/* Main Video Area */}
+      <main className="flex-1 flex items-center justify-center p-6 gap-6">
+        {/* Remote Video (Large) */}
+        <div className="relative flex-1 max-w-4xl h-full bg-slate-800 rounded-2xl overflow-hidden shadow-2xl border border-slate-700">
+          <video
+            ref={remoteVid}
+            autoPlay
+            playsInline
+            className="w-full h-full object-cover"
+          ></video>
+          {!remoteStream && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800">
+              <div className="w-24 h-24 rounded-full bg-slate-700 flex items-center justify-center mb-4">
+                <svg
+                  className="w-12 h-12 text-slate-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </div>
+              <p className="text-slate-400 text-lg">
+                Waiting for participant...
+              </p>
+            </div>
+          )}
+          {remoteName && (
+            <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-lg">
+              <span className="text-white text-sm font-medium">
+                {remoteName}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Local Video (Small - Picture in Picture style) */}
+        <div className="absolute bottom-28 right-8 w-64 h-44 bg-slate-800 rounded-xl overflow-hidden shadow-xl border-2 border-slate-600 hover:border-blue-500 transition-all duration-300 hover:scale-105">
+          <video
+            ref={localVid}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+          ></video>
+          <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 backdrop-blur-sm rounded-md">
+            <span className="text-white text-xs font-medium">You</span>
           </div>
         </div>
-      </div>
+      </main>
+
+      {/* Notification Banner */}
+      {isRemoteBtnClicked && !isBtnClicked && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 px-6 py-3 bg-amber-500/20 backdrop-blur-sm border border-amber-500/50 rounded-xl shadow-lg animate-bounce">
+          <div className="flex items-center gap-3">
+            <svg
+              className="w-5 h-5 text-amber-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+              />
+            </svg>
+            <p className="text-amber-200 font-medium">
+              The other participant is ready! Click Start Call to begin.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Control Bar */}
+      <footer className="flex items-center justify-center gap-4 px-6 py-5 bg-slate-800/80 backdrop-blur-sm border-t border-slate-700">
+        <button
+          onClick={btnHandler}
+          disabled={isBtnClicked}
+          className={`flex items-center gap-2 px-8 py-3 rounded-full font-semibold text-white transition-all duration-300 shadow-lg ${
+            isBtnClicked
+              ? "bg-green-600 cursor-default"
+              : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:shadow-blue-500/25 hover:shadow-xl hover:scale-105"
+          }`}
+        >
+          {isBtnClicked ? (
+            <>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              Call Started
+            </>
+          ) : (
+            <>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+              Start Call
+            </>
+          )}
+        </button>
+
+        <button
+          onClick={() => console.log(remoteName)}
+          className="p-3 rounded-full bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition-all duration-300"
+          title="Debug: Check remote name"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </button>
+      </footer>
     </div>
   );
 }
