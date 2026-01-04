@@ -46,7 +46,7 @@ function page() {
     const { offer, offerSenderName } = data;
     const answer = await createNegotiationAnswer(offer);
     console.log("Negotiation answer send :", answer);
-    socket?.emit("call-accepted", { answer, offerSenderName });
+    socket?.emit("negotiation-call-accepted", { answer, offerSenderName });
   }, []);
 
   const handleCallAccepted = useCallback(async (data: any) => {
@@ -55,6 +55,15 @@ function page() {
 
     console.log("answer received :", answer);
     await setRemoteAns(answer);
+  }, []);
+
+  const handleNegotiationCallAccepted = useCallback(async (data: any) => {
+    const { answer } = data;
+    if (!answer) return;
+
+    console.log("negotiation-answer received :", answer);
+    await setRemoteAns(answer);
+    // sdd logic to click the button here
   }, []);
 
   const getUserMedia = useCallback(async () => {
@@ -72,7 +81,9 @@ function page() {
       },
     };
 
-    const stream = await navigator.mediaDevices.getUserMedia(mediaStreamOptions);
+    const stream = await navigator.mediaDevices.getUserMedia(
+      mediaStreamOptions
+    );
     if (localVid.current) localVid.current.srcObject = stream;
     setStream(stream);
   }, []);
@@ -116,6 +127,7 @@ function page() {
 
     socket.on("joined-room", newUserJoin);
     socket.on("call-accepted", handleCallAccepted);
+    socket.on("negotiation-call-accepted", handleNegotiationCallAccepted);
     socket.on("call-user-negotiation", handleNegotiationIncommingCall);
     socket.on("start-btn-clicked", () => setIsRemoteBtnCllicked(true));
 
@@ -158,7 +170,7 @@ function page() {
             <video ref={localVid} autoPlay playsInline muted></video>
           </div>
           <div className="border-red-500 border-4 h-[50vh]">
-            <video ref={remoteVid} autoPlay playsInline ></video>
+            <video ref={remoteVid} autoPlay playsInline></video>
           </div>
         </div>
       </div>
