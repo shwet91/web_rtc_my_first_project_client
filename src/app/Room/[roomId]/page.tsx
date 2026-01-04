@@ -171,9 +171,23 @@ function page() {
       </header>
 
       {/* Main Video Area */}
-      <main className="flex-1 flex items-center justify-center p-6 gap-6">
-        {/* Remote Video (Large) */}
-        <div className="relative flex-1 max-w-4xl h-full bg-slate-800 rounded-2xl overflow-hidden shadow-2xl border border-slate-700">
+      <main className="flex-1 flex items-center justify-center p-4 gap-4">
+        {/* Local Video */}
+        <div className="relative flex-1 h-full bg-slate-800 rounded-2xl overflow-hidden shadow-2xl border border-slate-700">
+          <video
+            ref={localVid}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+          ></video>
+          <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-lg">
+            <span className="text-white text-sm font-medium">You</span>
+          </div>
+        </div>
+
+        {/* Remote Video */}
+        <div className="relative flex-1 h-full bg-slate-800 rounded-2xl overflow-hidden shadow-2xl border border-slate-700">
           <video
             ref={remoteVid}
             autoPlay
@@ -209,20 +223,6 @@ function page() {
               </span>
             </div>
           )}
-        </div>
-
-        {/* Local Video (Small - Picture in Picture style) */}
-        <div className="absolute bottom-28 right-8 w-64 h-44 bg-slate-800 rounded-xl overflow-hidden shadow-xl border-2 border-slate-600 hover:border-blue-500 transition-all duration-300 hover:scale-105">
-          <video
-            ref={localVid}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover"
-          ></video>
-          <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 backdrop-blur-sm rounded-md">
-            <span className="text-white text-xs font-medium">You</span>
-          </div>
         </div>
       </main>
 
